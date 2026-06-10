@@ -52,6 +52,16 @@ chmod +x *.sh
 ./init-quickstart-env.sh
 ```
 
+如果想直接下载 release 压缩包：
+
+```bash
+curl -L -o vps-relay-kit.tar.gz https://github.com/delete222/VPS-Tunnel/releases/download/v0.1.0/vps-relay-kit.tar.gz
+tar -xzf vps-relay-kit.tar.gz
+cd vps-relay-kit
+chmod +x *.sh
+./init-quickstart-env.sh
+```
+
 这会生成最短版 `00-vars.env`，并自动生成 SOCKS 内链密码。你只需要编辑两个 Tailscale auth key：
 
 ```bash
