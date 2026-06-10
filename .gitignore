@@ -1,5 +1,4 @@
 work/
 *.tmp
 00-vars.env
-outputs/vps-relay-kit/00-vars.env
-outputs/vps-relay-kit/client-sing-box.json
+client-sing-box.json

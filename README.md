@@ -28,7 +28,24 @@ GCP 是最终出口，所以要先准备好：
 
 ## 0. 本地准备配置
 
-在本地解压本包后执行：
+这个仓库是 private，所以最稳的方式是在你自己的电脑上先 clone，再把同一个目录上传到两台 VPS。
+
+在本地执行：
+
+```bash
+gh repo clone delete222/VPS-Tunnel
+cd VPS-Tunnel
+chmod +x *.sh
+./init-quickstart-env.sh
+```
+
+如果不用 GitHub CLI，也可以在 GitHub 页面下载 ZIP：
+
+```text
+https://github.com/delete222/VPS-Tunnel
+```
+
+下载后解压，进入解压目录再执行：
 
 ```bash
 chmod +x *.sh
@@ -56,14 +73,24 @@ TAILSCALE_AUTH_KEY_ORACLE="你的 Oracle Tailscale auth key"
 
 `fresh-gcp.sh` 和 `fresh-oracle.sh` 也会自动先运行这个检查。
 
+把配置好的同一个目录上传到 GCP 和德国 Oracle。因为你现在已经在 `VPS-Tunnel` 目录里，推荐先回到上一级再上传整个目录：
+
+```bash
+cd ..
+scp -r VPS-Tunnel ubuntu@你的GCP_IP:~/
+scp -r VPS-Tunnel ubuntu@你的德国Oracle_IP:~/
+```
+
+如果你的服务器用户名不是 `ubuntu`，把命令里的用户名换成实际 SSH 用户。
+
 ## 1. 美国 GCP：先装出口
 
-把整个 `vps-relay-kit` 目录上传到 GCP，里面要有你编辑好的 `00-vars.env`。
+把整个项目目录上传到 GCP，里面要有你编辑好的 `00-vars.env`。如果从 GitHub 拉取，可以用仓库目录名 `VPS-Tunnel`；如果用压缩包，可以解压成 `vps-relay-kit`。
 
 在 GCP 上运行：
 
 ```bash
-cd ~/vps-relay-kit
+cd ~/VPS-Tunnel   # 或 cd ~/vps-relay-kit
 sudo bash fresh-gcp.sh
 ```
 
@@ -83,12 +110,12 @@ sudo bash verify-vps-links.sh gcp
 
 ## 2. 德国 Oracle：装入口并补丁
 
-把同一个 `vps-relay-kit` 目录上传到德国 Oracle，里面要是同一份 `00-vars.env`。
+把同一个项目目录上传到德国 Oracle，里面要是同一份 `00-vars.env`。
 
 在德国 Oracle 上运行：
 
 ```bash
-cd ~/vps-relay-kit
+cd ~/VPS-Tunnel   # 或 cd ~/vps-relay-kit
 sudo bash fresh-oracle.sh
 ```
 
