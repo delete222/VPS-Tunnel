@@ -55,7 +55,7 @@ chmod +x *.sh
 如果想直接下载 release 压缩包：
 
 ```bash
-curl -L -o vps-relay-kit.tar.gz https://github.com/delete222/VPS-Tunnel/releases/download/v0.1.0/vps-relay-kit.tar.gz
+curl -L -o vps-relay-kit.tar.gz https://github.com/delete222/VPS-Tunnel/releases/download/v0.1.1/vps-relay-kit.tar.gz
 tar -xzf vps-relay-kit.tar.gz
 cd vps-relay-kit
 chmod +x *.sh
