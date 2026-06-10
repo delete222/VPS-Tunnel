@@ -28,18 +28,18 @@ GCP 是最终出口，所以要先准备好：
 
 ## 0. 本地准备配置
 
-这个仓库是 private，所以最稳的方式是在你自己的电脑上先 clone，再把同一个目录上传到两台 VPS。
+这个仓库是公开的，但推荐仍然是在你自己的电脑上先生成 `00-vars.env`，再把同一份目录上传到两台 VPS。这样可以保证两边的 SOCKS 密码完全一致。
 
 在本地执行：
 
 ```bash
-gh repo clone delete222/VPS-Tunnel
+git clone https://github.com/delete222/VPS-Tunnel.git
 cd VPS-Tunnel
 chmod +x *.sh
 ./init-quickstart-env.sh
 ```
 
-如果不用 GitHub CLI，也可以在 GitHub 页面下载 ZIP：
+也可以在 GitHub 页面下载 ZIP：
 
 ```text
 https://github.com/delete222/VPS-Tunnel
@@ -73,15 +73,21 @@ TAILSCALE_AUTH_KEY_ORACLE="你的 Oracle Tailscale auth key"
 
 `fresh-gcp.sh` 和 `fresh-oracle.sh` 也会自动先运行这个检查。
 
-把配置好的同一个目录上传到 GCP 和德国 Oracle。因为你现在已经在 `VPS-Tunnel` 目录里，推荐先回到上一级再上传整个目录：
+把配置好的同一个目录上传到 GCP 和德国 Oracle，推荐直接用本包的上传脚本：
+
+```bash
+./upload-to-vps.sh ubuntu@你的GCP_IP ubuntu@你的德国Oracle_IP
+```
+
+如果你的服务器用户名不是 `ubuntu`，把命令里的用户名换成实际 SSH 用户。这个脚本会把当前目录上传到两台服务器的 `~/VPS-Tunnel`。
+
+你也可以手动上传。因为你现在已经在 `VPS-Tunnel` 目录里，先回到上一级再上传整个目录：
 
 ```bash
 cd ..
 scp -r VPS-Tunnel ubuntu@你的GCP_IP:~/
 scp -r VPS-Tunnel ubuntu@你的德国Oracle_IP:~/
 ```
-
-如果你的服务器用户名不是 `ubuntu`，把命令里的用户名换成实际 SSH 用户。
 
 ## 1. 美国 GCP：先装出口
 
