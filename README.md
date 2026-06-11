@@ -16,6 +16,53 @@
 
 德国的 VLESS/VMess+CDN、HY2、Reality、SSL 证书、订阅配置，都继续交给 `yonggekkk/sing-box-yg` 处理。本包只负责 Tailscale 内链和“最终出口改成 GCP”。
 
+## 最短执行顺序
+
+本地电脑：
+
+```bash
+curl -L -o VPS-Tunnel.tar.gz https://github.com/delete222/VPS-Tunnel/releases/latest/download/VPS-Tunnel.tar.gz
+tar -xzf VPS-Tunnel.tar.gz
+cd VPS-Tunnel
+chmod +x *.sh
+./init-quickstart-env.sh
+```
+
+编辑 `00-vars.env`，填入：
+
+```bash
+TAILSCALE_AUTH_KEY_GCP="你的 GCP Tailscale auth key"
+TAILSCALE_AUTH_KEY_ORACLE="你的 Oracle Tailscale auth key"
+```
+
+上传同一份目录到两台 VPS：
+
+```bash
+./upload-to-vps.sh ubuntu@你的GCP_IP ubuntu@你的德国Oracle_IP
+```
+
+GCP VPS：
+
+```bash
+cd ~/VPS-Tunnel
+sudo bash fresh-gcp.sh
+```
+
+Oracle VPS：
+
+```bash
+cd ~/VPS-Tunnel
+sudo bash fresh-oracle.sh
+```
+
+在 `sing-box-yg` 菜单里把端口、证书、协议、订阅都设置完，然后仍在 Oracle VPS 上运行：
+
+```bash
+sudo bash oneclick-oracle-after-sing-box-yg.sh
+```
+
+这个补丁脚本最后会自动验证 TCP 和 UDP。看到 `Germany through GCP SOCKS exit IP` 显示 GCP 美国 IP，并且 UDP 段显示 `OK: SOCKS5 UDP works`，就说明内链出口基本正常。
+
 ## 为什么是这个顺序
 
 GCP 是最终出口，所以要先准备好：
