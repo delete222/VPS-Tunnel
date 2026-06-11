@@ -53,12 +53,10 @@ chmod +x *.sh
 ./init-quickstart-env.sh
 ```
 
-如果想直接下载 release 压缩包，请等新版 release 发布后再用。旧的 `v0.1.1` 压缩包不包含本文档里的安全加固脚本和“确认后再补丁”流程。
-
-新版发布后命令形式如下，把版本号换成最新 release：
+如果想直接下载最新版 release 压缩包：
 
 ```bash
-curl -L -o vps-relay-kit.tar.gz https://github.com/delete222/VPS-Tunnel/releases/download/版本号/vps-relay-kit.tar.gz
+curl -L -o vps-relay-kit.tar.gz https://github.com/delete222/VPS-Tunnel/releases/latest/download/vps-relay-kit.tar.gz
 tar -xzf vps-relay-kit.tar.gz
 cd vps-relay-kit
 chmod +x *.sh
