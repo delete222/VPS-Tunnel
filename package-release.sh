@@ -15,6 +15,7 @@ mkdir -p "$pkg"
 
 tar -cf - \
   --exclude '.git' \
+  --exclude 'work' \
   --exclude 'release' \
   --exclude 'client-sing-box.json' \
   --exclude '00-vars.env' \

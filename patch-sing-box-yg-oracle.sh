@@ -114,6 +114,9 @@ for name in sb10.json sb11.json sb.json; do
   [[ -f "$YG_DIR/$name" ]] && config_files+=("$YG_DIR/$name")
 done
 [[ "${#config_files[@]}" -gt 0 ]] || die "No sing-box-yg server JSON configs found in $YG_DIR. Expected sb10.json, sb11.json, or sb.json."
+active_config="$YG_DIR/sb.json"
+has_active_config=0
+[[ -f "$active_config" ]] && has_active_config=1
 
 binary=""
 if [[ -x "$YG_DIR/sing-box" ]]; then
@@ -166,7 +169,12 @@ for file in "${config_files[@]}"; do
 
   jq empty "$tmp" >/dev/null 2>&1 || die "Generated invalid JSON for $file. Original file was not changed."
   if [[ -n "$binary" ]]; then
-    "$binary" check -c "$tmp" || die "sing-box check failed for generated config from $file. Original file was not changed."
+    if ! "$binary" check -c "$tmp"; then
+      if [[ "$has_active_config" -eq 0 || "$(basename "$file")" == "sb.json" ]]; then
+        die "sing-box check failed for config $file. Original file was not changed."
+      fi
+      echo "WARN: sing-box check failed for optional template $file; patching it anyway because current sing-box may not support this legacy template." >&2
+    fi
   fi
 
   patched_files+=("$file")

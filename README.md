@@ -209,6 +209,7 @@ sudo bash oneclick-oracle-after-sing-box-yg.sh
 - 自动寻找 `gcp-us-exit` 的 Tailscale IP
 - 备份 `/etc/s-box/sb10.json`、`/etc/s-box/sb11.json`、`/etc/s-box/sb.json`
 - 先生成临时配置并通过 `sing-box check`，验证成功后才覆盖原文件
+- 如果当前实际配置 `sb.json` 存在，且当前 sing-box 版本无法校验旧模板 `sb10.json`/`sb11.json`，脚本只会警告；如果 `sb.json` 不存在或 `sb.json` 本身校验失败，脚本会终止
 - 新增 `gcp-us-exit` 出站
 - 把非 `block`/`dns` 的出站规则都改到美国 GCP
 - 重启 sing-box
