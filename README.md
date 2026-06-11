@@ -35,10 +35,31 @@ TAILSCALE_AUTH_KEY_GCP="你的 GCP Tailscale auth key"
 TAILSCALE_AUTH_KEY_ORACLE="你的 Oracle Tailscale auth key"
 ```
 
-上传同一份目录到两台 VPS：
+然后有两种方式把脚本放到 VPS。
+
+方式 A：直接上传同一份目录到两台 VPS：
 
 ```bash
 ./upload-to-vps.sh ubuntu@你的GCP_IP ubuntu@你的德国Oracle_IP
+```
+
+方式 B：两台 VPS 自己下载脚本，你只上传同一份 `00-vars.env`：
+
+```bash
+# 在 GCP VPS 和德国 Oracle VPS 上都执行
+cd ~
+rm -rf VPS-Tunnel
+curl -L -o VPS-Tunnel.tar.gz https://github.com/delete222/VPS-Tunnel/releases/latest/download/VPS-Tunnel.tar.gz
+tar -xzf VPS-Tunnel.tar.gz
+cd VPS-Tunnel
+chmod +x *.sh
+```
+
+然后从你的电脑上传同一份环境配置：
+
+```bash
+scp 00-vars.env ubuntu@你的GCP_IP:~/VPS-Tunnel/00-vars.env
+scp 00-vars.env ubuntu@你的德国Oracle_IP:~/VPS-Tunnel/00-vars.env
 ```
 
 GCP VPS：
@@ -82,7 +103,7 @@ GCP 是最终出口，所以要先准备好：
 
 ## 0. 本地准备配置
 
-这个仓库是公开的，但推荐仍然是在你自己的电脑上先生成 `00-vars.env`，再把同一份目录上传到两台 VPS。这样可以保证两边的 SOCKS 密码完全一致。
+这个仓库是公开的。推荐是在你自己的电脑上先生成 `00-vars.env`，然后让两台 VPS 自己下载脚本，你只上传同一份 `00-vars.env`。这样步骤更少，也能保证两边的 SOCKS 密码完全一致。
 
 在本地执行：
 
@@ -137,7 +158,9 @@ TAILSCALE_AUTH_KEY_ORACLE="你的 Oracle Tailscale auth key"
 
 `fresh-gcp.sh` 和 `fresh-oracle.sh` 也会自动先运行这个检查。
 
-把配置好的同一个目录上传到 GCP 和德国 Oracle，推荐直接用本包的上传脚本：
+把脚本和配置放到 VPS 有两种方式。
+
+方式 A：上传整个目录，推荐直接用本包的上传脚本：
 
 ```bash
 ./upload-to-vps.sh ubuntu@你的GCP_IP ubuntu@你的德国Oracle_IP
@@ -151,6 +174,31 @@ TAILSCALE_AUTH_KEY_ORACLE="你的 Oracle Tailscale auth key"
 cd ..
 scp -r VPS-Tunnel ubuntu@你的GCP_IP:~/
 scp -r VPS-Tunnel ubuntu@你的德国Oracle_IP:~/
+```
+
+方式 B：两台 VPS 自己下载脚本，你只上传 `00-vars.env`：
+
+```bash
+# 在 GCP VPS 和德国 Oracle VPS 上都执行
+cd ~
+rm -rf VPS-Tunnel
+curl -L -o VPS-Tunnel.tar.gz https://github.com/delete222/VPS-Tunnel/releases/latest/download/VPS-Tunnel.tar.gz
+tar -xzf VPS-Tunnel.tar.gz
+cd VPS-Tunnel
+chmod +x *.sh
+```
+
+然后在你的电脑上把同一个环境配置文件传给两台 VPS：
+
+```bash
+scp 00-vars.env ubuntu@你的GCP_IP:~/VPS-Tunnel/00-vars.env
+scp 00-vars.env ubuntu@你的德国Oracle_IP:~/VPS-Tunnel/00-vars.env
+```
+
+如果 VPS 上没有 `curl`，可以改用：
+
+```bash
+wget -O VPS-Tunnel.tar.gz https://github.com/delete222/VPS-Tunnel/releases/latest/download/VPS-Tunnel.tar.gz
 ```
 
 ## 1. 美国 GCP：先装出口
