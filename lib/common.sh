@@ -5,7 +5,7 @@ KIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VARS_FILE="${VARS_FILE:-$KIT_DIR/00-vars.env}"
 
 die() {
-  echo "ERROR: $*" >&2
+  echo "错误：$*" >&2
   exit 1
 }
 
@@ -16,12 +16,12 @@ info() {
 
 need_root() {
   if [[ "${EUID}" -ne 0 ]]; then
-    die "Run as root, or run with sudo."
+    die "请使用 root 用户运行，或者在命令前加 sudo。"
   fi
 }
 
 load_vars() {
-  [[ -f "$VARS_FILE" ]] || die "Missing $VARS_FILE. Copy 00-vars.env.example to 00-vars.env and edit it."
+  [[ -f "$VARS_FILE" ]] || die "找不到 $VARS_FILE。请把 00-vars.env.example 复制成 00-vars.env 后再填写。"
   # shellcheck disable=SC1090
   source "$VARS_FILE"
 }
@@ -29,16 +29,16 @@ load_vars() {
 require_var() {
   local name="$1"
   local value="${!name:-}"
-  [[ -n "$value" ]] || die "Missing required variable: $name"
+  [[ -n "$value" ]] || die "缺少必填变量：$name"
 }
 
 detect_os() {
-  [[ -r /etc/os-release ]] || die "Cannot read /etc/os-release"
+  [[ -r /etc/os-release ]] || die "无法读取 /etc/os-release"
   # shellcheck disable=SC1091
   source /etc/os-release
   case "${ID_LIKE:-$ID}" in
     *debian*|*ubuntu*) OS_FAMILY="debian" ;;
-    *) die "Only Ubuntu/Debian is implemented. Detected ID=$ID ID_LIKE=${ID_LIKE:-}" ;;
+    *) die "目前只支持 Ubuntu/Debian。检测到 ID=$ID ID_LIKE=${ID_LIKE:-}" ;;
   esac
 }
 
@@ -52,7 +52,7 @@ system_arch() {
   case "$(uname -m)" in
     x86_64|amd64) echo "amd64" ;;
     aarch64|arm64) echo "arm64" ;;
-    *) die "Unsupported architecture: $(uname -m)" ;;
+    *) die "暂不支持这个 CPU 架构：$(uname -m)" ;;
   esac
 }
 
@@ -66,7 +66,7 @@ download_sing_box() {
     version="$(curl -fsSL https://api.github.com/repos/SagerNet/sing-box/releases/latest | jq -r '.tag_name' | sed 's/^v//')"
   fi
   url="https://github.com/SagerNet/sing-box/releases/download/v${version}/sing-box-${version}-linux-${arch}.tar.gz"
-  info "Installing sing-box v${version}"
+  info "正在安装 sing-box v${version}"
   curl -fL "$url" -o "$tmp/sing-box.tar.gz"
   tar -xzf "$tmp/sing-box.tar.gz" -C "$tmp"
   install -m 0755 "$tmp/sing-box-${version}-linux-${arch}/sing-box" /usr/local/bin/sing-box
@@ -77,16 +77,16 @@ ensure_sing_box() {
   if ! command -v sing-box >/dev/null 2>&1; then
     download_sing_box
   else
-    info "sing-box already installed: $(sing-box version | head -n 1)"
+    info "sing-box 已安装：$(sing-box version | head -n 1)"
   fi
 }
 
 install_tailscale() {
   if command -v tailscale >/dev/null 2>&1; then
-    info "Tailscale already installed"
+    info "Tailscale 已安装"
     return
   fi
-  info "Installing Tailscale"
+  info "正在安装 Tailscale"
   curl -fsSL https://tailscale.com/install.sh | sh
 }
 

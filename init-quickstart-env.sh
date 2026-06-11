@@ -5,28 +5,28 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VARS_FILE="$SCRIPT_DIR/00-vars.env"
 
 if [[ -e "$VARS_FILE" ]]; then
-  echo "$VARS_FILE already exists; refusing to overwrite it." >&2
+  echo "$VARS_FILE 已存在，为避免覆盖配置，本次停止。" >&2
   exit 1
 fi
 
 socks_password="$(openssl rand -base64 32 | tr -d '\n')"
 
 cat > "$VARS_FILE" <<EOF
-# Simple recommended path:
-# Germany Oracle runs yonggekkk/sing-box-yg.
-# GCP provides the US exit.
-# Germany and GCP connect through Tailscale.
+# 推荐的简单路线：
+# 德国 Oracle 运行 yonggekkk/sing-box-yg。
+# GCP 提供美国出口。
+# 德国和 GCP 之间通过 Tailscale 连接。
 
 INNER_LINK_MODE="tailscale"
 
-# Fill these two values from the Tailscale admin console.
+# 从 Tailscale 管理后台填写这两个值。
 TAILSCALE_AUTH_KEY_GCP=""
 TAILSCALE_AUTH_KEY_ORACLE=""
 
 TAILSCALE_GCP_HOSTNAME="gcp-us-exit"
 TAILSCALE_ORACLE_HOSTNAME="oracle-de-entry"
 
-# Usually leave empty. The Germany script can auto-detect it.
+# 通常留空即可，德国脚本可以自动发现。
 TAILSCALE_GCP_IP=""
 
 GCP_SOCKS_USER="relay"
@@ -40,11 +40,11 @@ UPSTREAM_SB_URL="https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/sb
 EOF
 
 cat <<EOF
-Created: $VARS_FILE
+已创建：$VARS_FILE
 
-Edit only these two required values before uploading this same folder to both VPS:
+上传同一个目录到两台 VPS 前，只需要先填写这两个必填值：
   TAILSCALE_AUTH_KEY_GCP
   TAILSCALE_AUTH_KEY_ORACLE
 
-Keep this exact same 00-vars.env on both GCP and Germany Oracle.
+两台 VPS 请使用完全相同的 00-vars.env。
 EOF

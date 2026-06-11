@@ -6,7 +6,7 @@ VARS_EXAMPLE="$SCRIPT_DIR/00-vars.env.example"
 VARS_FILE="$SCRIPT_DIR/00-vars.env"
 
 if [[ -e "$VARS_FILE" ]]; then
-  echo "$VARS_FILE already exists; refusing to overwrite secrets." >&2
+  echo "$VARS_FILE 已存在，为避免覆盖密钥，本次停止。" >&2
   exit 1
 fi
 
@@ -36,7 +36,7 @@ else
   wg_gcp_public=""
   wg_oracle_private=""
   wg_oracle_public=""
-  echo "wg not found locally; WireGuard keys left blank. Generate them on a VPS with: wg genkey | tee private | wg pubkey" >&2
+  echo "本机没有找到 wg；WireGuard 密钥已留空。可以稍后在 VPS 上运行生成：wg genkey | tee private | wg pubkey" >&2
 fi
 
 perl -0pi -e "s|^UUID=.*|UUID=\"$uuid\"|m;
@@ -51,12 +51,11 @@ perl -0pi -e "s|^UUID=.*|UUID=\"$uuid\"|m;
   s|^WG_ORACLE_PUBLIC_KEY=.*|WG_ORACLE_PUBLIC_KEY=\"$wg_oracle_public\"|m;" "$VARS_FILE"
 
 cat <<EOF
-Created: $VARS_FILE
+已创建：$VARS_FILE
 
-Next:
-1. Edit CDN_DOMAIN, DIRECT_DOMAIN, ORACLE_DE_PUBLIC_IP, GCP_US_PUBLIC_IP.
-2. If using Tailscale, fill TAILSCALE_AUTH_KEY_GCP and TAILSCALE_AUTH_KEY_ORACLE.
-3. Generate Reality keys on a VPS after sing-box is installed:
+下一步：
+1. 修改 CDN_DOMAIN、DIRECT_DOMAIN、ORACLE_DE_PUBLIC_IP、GCP_US_PUBLIC_IP。
+2. 如果使用 Tailscale，请填写 TAILSCALE_AUTH_KEY_GCP 和 TAILSCALE_AUTH_KEY_ORACLE。
+3. 安装 sing-box 后，在 VPS 上生成 Reality 密钥：
    sing-box generate reality-keypair
 EOF
-

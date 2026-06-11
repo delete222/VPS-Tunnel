@@ -130,10 +130,10 @@ def main():
             raise RuntimeError(f"invalid SOCKS UDP address type: {atyp}")
         offset += 2
         _, ancount = parse_dns_response(response[offset:], query_id)
-        print(f"OK: SOCKS5 UDP works via {args.proxy_host}:{args.proxy_port}; DNS answers={ancount}")
+        print(f"正常：SOCKS5 UDP 可通过 {args.proxy_host}:{args.proxy_port} 工作；DNS 应答数={ancount}")
         return 0
     except Exception as exc:
-        print(f"FAIL: SOCKS5 UDP test failed: {exc}", file=sys.stderr)
+        print(f"失败：SOCKS5 UDP 测试失败：{exc}", file=sys.stderr)
         return 1
     finally:
         if udp:

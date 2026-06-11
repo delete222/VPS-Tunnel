@@ -22,11 +22,11 @@ case "$INNER_LINK_MODE" in
     require_var TAILSCALE_AUTH_KEY_GCP
     require_var TAILSCALE_GCP_HOSTNAME
     install_tailscale
-    info "Bringing up Tailscale on GCP"
+    info "正在启动 GCP 上的 Tailscale"
     if ! tailscale status >/dev/null 2>&1; then
       tailscale up --auth-key "$TAILSCALE_AUTH_KEY_GCP" --hostname "$TAILSCALE_GCP_HOSTNAME" --ssh=false
     else
-      echo "Tailscale is already up; keeping existing login."
+      echo "Tailscale 已经在线，保留当前登录状态。"
     fi
     ;;
   wireguard)
@@ -34,7 +34,7 @@ case "$INNER_LINK_MODE" in
     require_var WG_ORACLE_PUBLIC_KEY
     require_var ORACLE_DE_PUBLIC_IP
     apt-get install -y wireguard
-    info "Configuring WireGuard on GCP"
+    info "正在配置 GCP 上的 WireGuard"
     write_file /etc/wireguard/wg0.conf <<EOF
 [Interface]
 Address = ${WG_GCP_IP}/24
@@ -49,14 +49,14 @@ EOF
     enable_service wg-quick@wg0
     ;;
   ssh-socks)
-    info "SSH + SOCKS mode selected; GCP SOCKS will stay on 127.0.0.1 only."
+    info "已选择 SSH + SOCKS 模式；GCP SOCKS 只监听 127.0.0.1。"
     ;;
   *)
-    die "Invalid INNER_LINK_MODE=$INNER_LINK_MODE"
+    die "INNER_LINK_MODE 配置无效：$INNER_LINK_MODE"
     ;;
 esac
 
-info "Writing GCP sing-box SOCKS exit service"
+info "正在写入 GCP sing-box SOCKS 出口服务"
 install -d -m 0755 /etc/sing-box
 GCP_EXIT_CONFIG="/etc/sing-box/vps-tunnel-gcp-exit.json"
 GCP_EXIT_SERVICE="vps-tunnel-gcp-exit"
@@ -104,7 +104,7 @@ if [[ "$INNER_LINK_MODE" == "tailscale" ]]; then
     [[ -n "$ts_ip" ]] && break
     sleep 2
   done
-  [[ -n "$ts_ip" ]] || die "Tailscale is up, but no IPv4 address was available. Check: tailscale status"
+  [[ -n "$ts_ip" ]] || die "Tailscale 已启动，但没有拿到 IPv4 地址。请检查：tailscale status"
   jq --arg ip "$ts_ip" '.inbounds += [{
     "type": "socks",
     "tag": "socks-tailscale",
@@ -113,7 +113,7 @@ if [[ "$INNER_LINK_MODE" == "tailscale" ]]; then
     "users": [{"username": "'"${GCP_SOCKS_USER}"'", "password": "'"${GCP_SOCKS_PASSWORD}"'"}]
   }]' "$GCP_EXIT_CONFIG" > "$GCP_EXIT_CONFIG.tmp"
   mv "$GCP_EXIT_CONFIG.tmp" "$GCP_EXIT_CONFIG"
-  echo "Tailscale GCP IP: $ts_ip"
+  echo "GCP 的 Tailscale IP：$ts_ip"
 elif [[ "$INNER_LINK_MODE" == "wireguard" ]]; then
   jq '.inbounds += [{
     "type": "socks",
@@ -130,7 +130,7 @@ if [[ "$INNER_LINK_MODE" == "tailscale" ]]; then
 #!/usr/bin/env bash
 set -euo pipefail
 
-config="${1:?missing sing-box config path}"
+config="${1:?缺少 sing-box 配置文件路径}"
 
 for _ in $(seq 1 60); do
   ts_ip="$(tailscale ip -4 2>/dev/null | head -n 1 || true)"
@@ -145,7 +145,7 @@ for _ in $(seq 1 60); do
   sleep 2
 done
 
-echo "Timed out waiting for a Tailscale IPv4 address" >&2
+echo "等待 Tailscale IPv4 地址超时" >&2
 exit 1
 EOF
   chmod 0755 /usr/local/bin/vps-tunnel-wait-gcp-exit-tailscale
@@ -207,14 +207,14 @@ if systemctl cat sing-box >/dev/null 2>&1 && [[ -f /etc/sing-box/config.json ]] 
     )
   ' /etc/sing-box/config.json >/dev/null 2>&1 &&
   systemctl cat sing-box | grep -q '/etc/sing-box/config.json'; then
-  info "Disabling old VPS-Tunnel GCP exit service name: sing-box"
+  info "正在停用旧版 VPS-Tunnel GCP 出口服务名：sing-box"
   systemctl disable --now sing-box >/dev/null 2>&1 || true
 fi
 
 enable_service "$GCP_EXIT_SERVICE"
 
-info "GCP exit installed"
-echo "Verify locally on GCP:"
+info "GCP 出口已安装完成"
+echo "可在 GCP 本机这样验证："
 echo "  curl --socks5 ${GCP_SOCKS_USER}:${GCP_SOCKS_PASSWORD}@127.0.0.1:${GCP_INTERNAL_SOCKS_PORT} https://ipinfo.io/ip"
-echo "Service:"
+echo "查看服务状态："
 echo "  systemctl status ${GCP_EXIT_SERVICE}"

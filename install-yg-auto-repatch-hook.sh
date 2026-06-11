@@ -30,17 +30,17 @@ install_hook_files() {
 }
 
 install_hook() {
-  [[ -x "$SB_PATH" ]] || die "Cannot find executable $SB_PATH. Install yonggekkk/sing-box-yg first."
-  [[ ! -L "$SB_PATH" ]] || die "$SB_PATH is a symlink. Refusing to wrap it because that can overwrite the symlink target. Replace it with a real file first, then rerun this installer."
+  [[ -x "$SB_PATH" ]] || die "找不到可执行文件 $SB_PATH。请先安装 yonggekkk/sing-box-yg。"
+  [[ ! -L "$SB_PATH" ]] || die "$SB_PATH 是软链接。为避免覆盖软链接目标，本脚本不会包装它。请先换成真实文件后再运行。"
 
   if grep -q "$HOOK_MARKER" "$SB_PATH" 2>/dev/null; then
     install_hook_files
-    echo "$SB_PATH already has the VPS-Tunnel auto repatch hook. Refreshed $HOOK_LIB_DIR."
+    echo "$SB_PATH 已经安装 VPS-Tunnel 自动重新打补丁钩子，已刷新 $HOOK_LIB_DIR。"
     return
   fi
 
   if [[ -e "$REAL_SB_PATH" ]]; then
-    die "$REAL_SB_PATH already exists. Refusing to overwrite an existing backup."
+    die "$REAL_SB_PATH 已存在。为避免覆盖已有备份，本次停止。"
   fi
 
   install_hook_files
@@ -65,12 +65,12 @@ if [[ "\$rc" -eq 0 && -x "\$KIT_DIR/check-oracle-patch-status.sh" && -x "\$KIT_D
   chmod 0600 "\$check_log"
   if ! CHECK_NETWORK=0 "\$KIT_DIR/check-oracle-patch-status.sh" >"\$check_log" 2>&1; then
     echo
-    echo "VPS-Tunnel: sing-box-yg configs changed; re-applying GCP exit patch..."
+    echo "VPS-Tunnel：检测到 sing-box-yg 配置发生变化，正在重新应用 GCP 出口补丁..."
     if SKIP_BASE_PACKAGES=1 "\$KIT_DIR/patch-sing-box-yg-oracle.sh"; then
-      echo "VPS-Tunnel: GCP exit patch re-applied."
-      echo "VPS-Tunnel: run 'sudo bash \$KIT_DIR/check-oracle-patch-status.sh' to verify network exit."
+      echo "VPS-Tunnel：GCP 出口补丁已重新应用。"
+      echo "VPS-Tunnel：可运行 'sudo bash \$KIT_DIR/check-oracle-patch-status.sh' 验证网络出口。"
     else
-      echo "VPS-Tunnel: auto re-patch failed. See \$check_log and re-run:" >&2
+      echo "VPS-Tunnel：自动重新打补丁失败。请查看 \$check_log，并重新运行：" >&2
       echo "  sudo bash \$KIT_DIR/oneclick-oracle-after-sing-box-yg.sh" >&2
     fi
   else
@@ -83,28 +83,28 @@ EOF
   chmod 0755 "$SB_PATH"
   chown root:root "$SB_PATH"
 
-  echo "Installed VPS-Tunnel auto repatch hook:"
-  echo "  wrapper: $SB_PATH"
-  echo "  original: $REAL_SB_PATH"
-  echo "  root-owned helper copy: $HOOK_LIB_DIR"
+  echo "已安装 VPS-Tunnel 自动重新打补丁钩子："
+  echo "  包装后的 sb 命令：$SB_PATH"
+  echo "  原始 sb 备份：$REAL_SB_PATH"
+  echo "  root 权限辅助脚本副本：$HOOK_LIB_DIR"
 }
 
 remove_hook() {
   if ! grep -q "$HOOK_MARKER" "$SB_PATH" 2>/dev/null; then
-    echo "$SB_PATH is not managed by the VPS-Tunnel auto repatch hook."
+    echo "$SB_PATH 当前不由 VPS-Tunnel 自动重新打补丁钩子管理。"
     return
   fi
 
-  [[ -e "$REAL_SB_PATH" ]] || die "Missing original script backup: $REAL_SB_PATH"
+  [[ -e "$REAL_SB_PATH" ]] || die "缺少原始脚本备份：$REAL_SB_PATH"
   cp -a "$REAL_SB_PATH" "$SB_PATH"
   rm -f "$REAL_SB_PATH"
   if [[ "$(cd "$HOOK_LIB_DIR" 2>/dev/null && pwd -P)" == "$DEFAULT_HOOK_LIB_DIR" && -f "$HOOK_LIB_DIR/.vps-tunnel-hook" ]] &&
     grep -q "$HOOK_MARKER" "$HOOK_LIB_DIR/.vps-tunnel-hook"; then
     rm -rf "$HOOK_LIB_DIR"
   else
-    echo "WARN: Refusing to remove unexpected hook directory: $HOOK_LIB_DIR" >&2
+    echo "警告：拒绝删除非预期的钩子目录：$HOOK_LIB_DIR" >&2
   fi
-  echo "Removed VPS-Tunnel auto repatch hook and restored $SB_PATH."
+  echo "已移除 VPS-Tunnel 自动重新打补丁钩子，并恢复 $SB_PATH。"
 }
 
 case "${1:-install}" in
@@ -115,7 +115,7 @@ case "${1:-install}" in
     remove_hook
     ;;
   *)
-    echo "Usage: sudo bash install-yg-auto-repatch-hook.sh [install|remove]" >&2
+    echo "用法：sudo bash install-yg-auto-repatch-hook.sh [install|remove]" >&2
     exit 1
     ;;
 esac

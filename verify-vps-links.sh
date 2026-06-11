@@ -9,13 +9,13 @@ load_vars
 
 usage() {
   cat <<'EOF'
-Usage:
+用法：
   ./verify-vps-links.sh gcp
   ./verify-vps-links.sh oracle
 
-Run "gcp" on the US GCP VPS.
-Run "oracle" on the Germany Oracle VPS.
-Do not run this on your local China laptop/VPN path for routing decisions.
+在美国 GCP VPS 上运行 gcp。
+在德国 Oracle VPS 上运行 oracle。
+不要用你本机或本机 VPN 的测速结果来判断线路质量。
 EOF
 }
 
@@ -24,13 +24,13 @@ role="${1:-}"
 
 case "$role" in
   gcp)
-    echo "GCP local SOCKS exit test:"
+    echo "GCP 本机 SOCKS 出口测试："
     curl --max-time 15 --socks5 "${GCP_SOCKS_USER}:${GCP_SOCKS_PASSWORD}@127.0.0.1:${GCP_INTERNAL_SOCKS_PORT}" https://ipinfo.io/ip || true
     echo
     systemctl --no-pager --full status vps-tunnel-gcp-exit || true
     ;;
   oracle)
-    echo "Germany -> GCP basic network tests:"
+    echo "德国 Oracle -> 美国 GCP 内链基础测试："
     if [[ "$INNER_LINK_MODE" == "tailscale" ]]; then
       if [[ -z "${TAILSCALE_GCP_IP:-}" ]]; then
         require_var TAILSCALE_GCP_HOSTNAME
@@ -43,7 +43,7 @@ case "$role" in
           ) |
           .value.TailscaleIPs[0]
         ' | head -n 1)"
-        [[ -n "$TAILSCALE_GCP_IP" && "$TAILSCALE_GCP_IP" != "null" ]] || die "Cannot auto-detect GCP Tailscale IP. Fill TAILSCALE_GCP_IP in 00-vars.env."
+        [[ -n "$TAILSCALE_GCP_IP" && "$TAILSCALE_GCP_IP" != "null" ]] || die "无法自动发现 GCP 的 Tailscale IP。请在 00-vars.env 里填写 TAILSCALE_GCP_IP。"
       fi
       tailscale status || true
       tailscale ping "$TAILSCALE_GCP_IP" || true
@@ -56,11 +56,11 @@ case "$role" in
     fi
 
     echo
-    echo "mtr to inner target: $target"
+    echo "到内链目标的 mtr 测试：$target"
     mtr -rwzc 20 "$target" || true
 
     echo
-    echo "Germany through GCP SOCKS exit IP:"
+    echo "德国经 GCP SOCKS 出口访问 ipinfo 的出口 IP："
     if [[ "$INNER_LINK_MODE" == "ssh-socks" ]]; then
       port="$ORACLE_LOCAL_SOCKS_PORT"
     else
@@ -69,11 +69,11 @@ case "$role" in
     curl --max-time 20 --socks5 "${GCP_SOCKS_USER}:${GCP_SOCKS_PASSWORD}@${target}:${port}" https://ipinfo.io/ip || true
 
     echo
-    echo "Germany through GCP SOCKS UDP test:"
+    echo "德国经 GCP SOCKS 的 UDP 测试："
     if [[ "$INNER_LINK_MODE" == "ssh-socks" ]]; then
-      echo "SKIP: ssh-socks mode uses SSH TCP forwarding, so UDP through the GCP SOCKS exit is not expected to work."
+      echo "跳过：ssh-socks 模式使用 SSH TCP 转发，通常不支持通过 GCP SOCKS 出口转发 UDP。"
     elif ! command -v python3 >/dev/null 2>&1; then
-      echo "SKIP: python3 is missing, so the SOCKS5 UDP test cannot run."
+      echo "跳过：系统没有 python3，无法运行 SOCKS5 UDP 测试。"
     else
       python3 "$SCRIPT_DIR/test-socks5-udp.py" \
         --proxy-host "$target" \
