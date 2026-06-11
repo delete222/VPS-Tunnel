@@ -56,9 +56,9 @@ chmod +x *.sh
 如果想直接下载最新版 release 压缩包：
 
 ```bash
-curl -L -o vps-relay-kit.tar.gz https://github.com/delete222/VPS-Tunnel/releases/latest/download/vps-relay-kit.tar.gz
-tar -xzf vps-relay-kit.tar.gz
-cd vps-relay-kit
+curl -L -o VPS-Tunnel.tar.gz https://github.com/delete222/VPS-Tunnel/releases/latest/download/VPS-Tunnel.tar.gz
+tar -xzf VPS-Tunnel.tar.gz
+cd VPS-Tunnel
 chmod +x *.sh
 ./init-quickstart-env.sh
 ```
@@ -102,12 +102,12 @@ scp -r VPS-Tunnel ubuntu@你的德国Oracle_IP:~/
 
 ## 1. 美国 GCP：先装出口
 
-把整个项目目录上传到 GCP，里面要有你编辑好的 `00-vars.env`。如果从 GitHub 拉取，可以用仓库目录名 `VPS-Tunnel`；如果用压缩包，可以解压成 `vps-relay-kit`。
+把整个项目目录上传到 GCP，里面要有你编辑好的 `00-vars.env`。无论从 GitHub 拉取还是下载 release 压缩包，目录名都使用 `VPS-Tunnel`。
 
 在 GCP 上运行：
 
 ```bash
-cd ~/VPS-Tunnel   # 或 cd ~/vps-relay-kit
+cd ~/VPS-Tunnel
 sudo bash fresh-gcp.sh
 ```
 
@@ -134,7 +134,7 @@ systemctl status vps-tunnel-gcp-exit
 在德国 Oracle 上运行：
 
 ```bash
-cd ~/VPS-Tunnel   # 或 cd ~/vps-relay-kit
+cd ~/VPS-Tunnel
 sudo bash fresh-oracle.sh
 ```
 
