@@ -27,7 +27,7 @@ case "$role" in
     echo "GCP local SOCKS exit test:"
     curl --max-time 15 --socks5 "${GCP_SOCKS_USER}:${GCP_SOCKS_PASSWORD}@127.0.0.1:${GCP_INTERNAL_SOCKS_PORT}" https://ipinfo.io/ip || true
     echo
-    systemctl --no-pager --full status sing-box || true
+    systemctl --no-pager --full status vps-tunnel-gcp-exit || true
     ;;
   oracle)
     echo "Germany -> GCP basic network tests:"
@@ -69,6 +69,8 @@ case "$role" in
     curl --max-time 20 --socks5 "${GCP_SOCKS_USER}:${GCP_SOCKS_PASSWORD}@${target}:${port}" https://ipinfo.io/ip || true
     echo
     systemctl --no-pager --full status sing-box || true
+    echo
+    "$SCRIPT_DIR/check-oracle-patch-status.sh" || true
     ;;
   *)
     usage

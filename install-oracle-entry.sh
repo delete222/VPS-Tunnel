@@ -9,6 +9,23 @@ need_root
 load_vars
 detect_os
 
+if [[ "${I_UNDERSTAND_INSTALL_ORACLE_ENTRY_REPLACES_SERVICES:-}" != "yes" ]]; then
+  cat >&2 <<'EOF'
+ERROR: install-oracle-entry.sh is an advanced fallback that does NOT use
+yonggekkk/sing-box-yg. It writes /etc/sing-box/config.json,
+/etc/systemd/system/sing-box.service, and /etc/caddy/Caddyfile.
+
+Recommended path:
+  1. sudo bash fresh-oracle.sh
+  2. finish/tune the sing-box-yg menu
+  3. sudo bash oneclick-oracle-after-sing-box-yg.sh
+
+If you really want this fallback entry installer, rerun with:
+  I_UNDERSTAND_INSTALL_ORACLE_ENTRY_REPLACES_SERVICES=yes sudo -E bash install-oracle-entry.sh
+EOF
+  exit 1
+fi
+
 require_var CDN_DOMAIN
 require_var UUID
 require_var VLESS_WS_PATH

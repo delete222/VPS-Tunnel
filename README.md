@@ -11,7 +11,8 @@
 1. 本地生成 `00-vars.env`，填入两个 Tailscale auth key。
 2. 美国 GCP 上传本包，运行 `sudo bash fresh-gcp.sh`。
 3. 德国 Oracle 上传同一份本包，运行 `sudo bash fresh-oracle.sh`。
-4. 中国真实网络连接 `sing-box-yg` 生成的节点，确认出口 IP 是美国 GCP。
+4. 在 `sing-box-yg` 菜单里确认端口、证书、订阅、协议都调好后，运行 `sudo bash oneclick-oracle-after-sing-box-yg.sh`。
+5. 中国真实网络连接 `sing-box-yg` 生成的节点，确认出口 IP 是美国 GCP。
 
 德国的 VLESS/VMess+CDN、HY2、Reality、SSL 证书、订阅配置，都继续交给 `yonggekkk/sing-box-yg` 处理。本包只负责 Tailscale 内链和“最终出口改成 GCP”。
 
@@ -52,10 +53,12 @@ chmod +x *.sh
 ./init-quickstart-env.sh
 ```
 
-如果想直接下载 release 压缩包：
+如果想直接下载 release 压缩包，请等新版 release 发布后再用。旧的 `v0.1.1` 压缩包不包含本文档里的安全加固脚本和“确认后再补丁”流程。
+
+新版发布后命令形式如下，把版本号换成最新 release：
 
 ```bash
-curl -L -o vps-relay-kit.tar.gz https://github.com/delete222/VPS-Tunnel/releases/download/v0.1.1/vps-relay-kit.tar.gz
+curl -L -o vps-relay-kit.tar.gz https://github.com/delete222/VPS-Tunnel/releases/download/版本号/vps-relay-kit.tar.gz
 tar -xzf vps-relay-kit.tar.gz
 cd vps-relay-kit
 chmod +x *.sh
@@ -115,16 +118,18 @@ sudo bash fresh-gcp.sh
 - 安装/加入 Tailscale，主机名为 `gcp-us-exit`
 - 安装 sing-box
 - 在 GCP 上开一个只给内链使用的 SOCKS5 出口
+- 创建 `vps-tunnel-gcp-exit.service`，重启后会等待 Tailscale IP 就绪再启动
 
 验证：
 
 ```bash
 sudo bash verify-vps-links.sh gcp
+systemctl status vps-tunnel-gcp-exit
 ```
 
 看到的出口 IP 应该是美国 GCP 的公网 IP。
 
-## 2. 德国 Oracle：装入口并补丁
+## 2. 德国 Oracle：装入口，确认后再补丁
 
 把同一个项目目录上传到德国 Oracle，里面要是同一份 `00-vars.env`。
 
@@ -140,8 +145,19 @@ sudo bash fresh-oracle.sh
 - 安装/加入 Tailscale，主机名为 `oracle-de-entry`
 - 拉取并运行最新版 `yonggekkk/sing-box-yg`
 - 你按上游菜单配置 VLESS/VMess+CDN、HY2、Reality、SSL 证书和订阅
-- 上游菜单退出后，自动寻找 `gcp-us-exit` 的 Tailscale IP
+- 上游菜单退出后停止，不会自动修改 yg 配置
+
+等你确认端口、证书、订阅、协议都设置完，再运行：
+
+```bash
+sudo bash oneclick-oracle-after-sing-box-yg.sh
+```
+
+它会：
+
+- 自动寻找 `gcp-us-exit` 的 Tailscale IP
 - 备份 `/etc/s-box/sb10.json`、`/etc/s-box/sb11.json`、`/etc/s-box/sb.json`
+- 先生成临时配置并通过 `sing-box check`，验证成功后才覆盖原文件
 - 新增 `gcp-us-exit` 出站
 - 把非 `block`/`dns` 的出站规则都改到美国 GCP
 - 重启 sing-box
@@ -153,11 +169,58 @@ sudo bash fresh-oracle.sh
 sudo bash oneclick-oracle-after-sing-box-yg.sh
 ```
 
+如果只是想检查补丁有没有被 `sing-box-yg` 菜单操作覆盖，可以运行：
+
+```bash
+sudo bash check-oracle-patch-status.sh
+```
+
+尤其是你在 `sing-box-yg` 菜单里执行过重装、切换 sing-box 内核、重置配置、修改 WARP/出站等操作后，建议先检查；如果提示补丁缺失，就重新运行 `oneclick-oracle-after-sing-box-yg.sh`。
+
+如果你希望以后直接输入 `sb` 改完 yg 菜单后自动检查并补回 GCP 出口，可以安装可选钩子：
+
+```bash
+sudo bash install-yg-auto-repatch-hook.sh install
+```
+
+它会把原 `/usr/bin/sb` 备份到 `/usr/bin/sb.yg-original`，再创建一个包装器。你照常运行 `sb`，菜单退出后它会先离线检查三份配置；只有发现 `gcp-us-exit` 被覆盖时，才自动重新打补丁。
+
+如果 `/usr/bin/sb` 是符号链接，钩子安装器会拒绝包装，避免误覆盖链接目标。
+
+如果不想用了，可以恢复原始 yg 入口：
+
+```bash
+sudo bash install-yg-auto-repatch-hook.sh remove
+```
+
 如果补丁后服务异常，可以恢复最近一次备份：
 
 ```bash
 sudo bash restore-sing-box-yg-backup.sh
 ```
+
+## VPS 重启后自检
+
+两台 VPS 重启后，通常会自动恢复。建议按下面顺序确认：
+
+GCP：
+
+```bash
+systemctl status tailscaled
+systemctl status vps-tunnel-gcp-exit
+sudo bash verify-vps-links.sh gcp
+```
+
+Oracle：
+
+```bash
+systemctl status tailscaled
+systemctl status sing-box
+sudo bash check-oracle-patch-status.sh
+sudo bash verify-vps-links.sh oracle
+```
+
+如果 GCP 刚重启时 Tailscale 较慢，`vps-tunnel-gcp-exit.service` 会持续重试，不需要手动抢救。Oracle 的 `sing-box-yg` 服务不依赖 GCP 先在线；GCP 暂时不可达时客户端可能连不上出口，但不会让 yg 菜单或配置文件失效。
 
 ## 3. 中国真实网络测试
 
@@ -183,16 +246,18 @@ sudo bash restore-sing-box-yg-backup.sh
 
 - Tailscale 主线下，不需要把 SOCKS5 端口暴露到公网。
 - 只需要允许 GCP 正常连外网，并能安装 Tailscale。
+- 本包不会在 Oracle 上额外开放公网端口；Oracle 入站端口按 `sing-box-yg` 和云厂商安全组设置处理。
 
 ## Fork 还是薄封装
 
-不建议长期 fork 并魔改 `sb.sh` 主体。上游脚本很大，更新频繁，直接改主文件以后每次同步都容易冲突。
+不建议长期 fork 并魔改 `sb.sh` 主体。上游脚本很大，直接改主文件以后很难判断哪些改动来自上游、哪些来自本包。
 
 本包采用薄封装策略：
 
 - 每次安装时从上游拉取最新版 `sb.sh`。
 - 上游继续负责协议、证书、订阅和菜单。
 - 本包只在安装完成后修改服务端 JSON 的出站，让最终出口变成美国 GCP。
+- 如果你安装了 `install-yg-auto-repatch-hook.sh`，本包会包装 `/usr/bin/sb`，在 yg 菜单退出后自动检查并补回 GCP 出口，但仍保留原始 `/usr/bin/sb.yg-original` 可恢复。
 
 如果将来上游结构大改，只需要修 `patch-sing-box-yg-oracle.sh` 这个小补丁脚本，而不是维护整份 fork。
 
@@ -201,8 +266,12 @@ sudo bash restore-sing-box-yg-backup.sh
 推荐路线只需要 `fresh-gcp.sh` 和 `fresh-oracle.sh`。其它脚本是高级备用：
 
 - `oneclick-gcp-exit.sh`：GCP 出口底层一键脚本。
+- `install-oracle-upstream-only.sh`：德国 Oracle 只安装/运行上游 `sing-box-yg`，不自动补丁。
 - `oneclick-oracle-after-sing-box-yg.sh`：德国已装好 `sing-box-yg` 后单独打补丁。
+- `oneclick-oracle-install-upstream-and-patch.sh`：兼容旧入口；现在只运行上游安装，不会自动补丁。
 - `install-gcp-exit.sh`：支持 WireGuard、SSH+SOCKS 等高级内链模式。
 - `patch-sing-box-yg-oracle.sh`：德国补丁底层脚本，支持高级内链模式。
+- `check-oracle-patch-status.sh`：检查 yg 三份配置是否仍指向 GCP 出口。
+- `install-yg-auto-repatch-hook.sh`：可选包装 `/usr/bin/sb`，在 yg 菜单退出后自动检查并重补丁。
 - `restore-sing-box-yg-backup.sh`：恢复最近一次补丁前备份。
-- `install-oracle-entry.sh`：完全不用 `sing-box-yg` 时，由本包自建德国入口，会用到 Caddy。
+- `install-oracle-entry.sh`：完全不用 `sing-box-yg` 时，由本包自建德国入口，会用到 Caddy；会覆盖 `/etc/sing-box/config.json`、`sing-box.service` 和 Caddyfile，必须显式设置确认变量才会运行。

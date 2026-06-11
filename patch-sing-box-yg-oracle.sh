@@ -16,8 +16,19 @@ require_var GCP_INTERNAL_SOCKS_PORT
 
 YG_DIR="${SING_BOX_YG_DIR:-/etc/s-box}"
 BACKUP_DIR="$YG_DIR/backup-before-gcp-exit-$(date +%Y%m%d-%H%M%S)"
+tmp_files=()
 
-install_base_packages
+cleanup_tmp_files() {
+  local tmp
+  for tmp in "${tmp_files[@]:-}"; do
+    [[ -n "$tmp" ]] && rm -f "$tmp"
+  done
+}
+trap cleanup_tmp_files EXIT
+
+if [[ "${SKIP_BASE_PACKAGES:-0}" != "1" ]]; then
+  install_base_packages
+fi
 
 case "$INNER_LINK_MODE" in
   tailscale)
@@ -104,17 +115,25 @@ for name in sb10.json sb11.json sb.json; do
 done
 [[ "${#config_files[@]}" -gt 0 ]] || die "No sing-box-yg server JSON configs found in $YG_DIR. Expected sb10.json, sb11.json, or sb.json."
 
-info "Backing up sing-box-yg configs to $BACKUP_DIR"
-install -d -m 0700 "$BACKUP_DIR"
+binary=""
+if [[ -x "$YG_DIR/sing-box" ]]; then
+  binary="$YG_DIR/sing-box"
+elif command -v sing-box >/dev/null 2>&1; then
+  binary="$(command -v sing-box)"
+else
+  echo "WARN: sing-box binary not found; config schema validation will be skipped." >&2
+fi
+
+patched_files=()
+patched_tmps=()
 
 for file in "${config_files[@]}"; do
   if ! jq empty "$file" >/dev/null 2>&1; then
-    echo "Skip invalid JSON: $file" >&2
-    continue
+    die "Invalid JSON: $file. Refusing to patch any configs."
   fi
 
-  cp -a "$file" "$BACKUP_DIR/$(basename "$file")"
-  tmp="$(mktemp)"
+  tmp="$(mktemp "$(dirname "$file")/.vps-tunnel-$(basename "$file").XXXXXX")"
+  tmp_files+=("$tmp")
   jq \
     --arg host "$GCP_SOCKS_HOST" \
     --arg user "$GCP_SOCKS_USER" \
@@ -144,23 +163,29 @@ for file in "${config_files[@]}"; do
       .route.final = "gcp-us-exit" |
       .route = (.route | force_route_outbound)
     ' "$file" > "$tmp"
-  cat "$tmp" > "$file"
-  rm -f "$tmp"
-  echo "Patched: $file"
+
+  jq empty "$tmp" >/dev/null 2>&1 || die "Generated invalid JSON for $file. Original file was not changed."
+  if [[ -n "$binary" ]]; then
+    "$binary" check -c "$tmp" || die "sing-box check failed for generated config from $file. Original file was not changed."
+  fi
+
+  patched_files+=("$file")
+  patched_tmps+=("$tmp")
 done
 
-binary="$YG_DIR/sing-box"
-if [[ -x "$binary" ]]; then
-  for file in "${config_files[@]}"; do
-    "$binary" check -c "$file" || die "sing-box check failed for $file"
-  done
-elif command -v sing-box >/dev/null 2>&1; then
-  for file in "${config_files[@]}"; do
-    sing-box check -c "$file" || die "sing-box check failed for $file"
-  done
-else
-  echo "WARN: sing-box binary not found; skipped config validation." >&2
-fi
+info "Backing up sing-box-yg configs to $BACKUP_DIR"
+install -d -m 0700 "$BACKUP_DIR"
+
+for i in "${!patched_files[@]}"; do
+  file="${patched_files[$i]}"
+  tmp="${patched_tmps[$i]}"
+  cp -a "$file" "$BACKUP_DIR/$(basename "$file")"
+  chmod --reference="$file" "$tmp" 2>/dev/null || true
+  chown --reference="$file" "$tmp" 2>/dev/null || true
+  mv "$tmp" "$file"
+  patched_tmps[$i]=""
+  echo "Patched: $file"
+done
 
 info "Restarting possible sing-box-yg services"
 restarted=0

@@ -27,7 +27,17 @@ if [[ "$GCP_SOCKS_PASSWORD" == "change-this-to-a-long-random-password" ]]; then
 fi
 
 "$SCRIPT_DIR/patch-sing-box-yg-oracle.sh"
+CHECK_NETWORK=0 "$SCRIPT_DIR/check-oracle-patch-status.sh"
 "$SCRIPT_DIR/verify-vps-links.sh" oracle
 
 echo
 echo "Germany side is patched. Your sing-box-yg inbound nodes should now exit through the US GCP SOCKS service."
+echo
+echo "Important:"
+echo "  If you later use the sing-box-yg menu to reinstall, switch sing-box core,"
+echo "  reset configs, change major outbound/WARP settings, or otherwise rewrite"
+echo "  /etc/s-box/sb*.json, run this again:"
+echo "    sudo bash oneclick-oracle-after-sing-box-yg.sh"
+echo
+echo "To check whether the patch is still active without changing configs:"
+echo "  sudo bash check-oracle-patch-status.sh"

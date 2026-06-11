@@ -66,4 +66,6 @@ Next:
 
   On Germany Oracle:
     cd ~/$REMOTE_DIR && sudo bash fresh-oracle.sh
+    # Finish/tune the sing-box-yg menu first, then:
+    sudo bash oneclick-oracle-after-sing-box-yg.sh
 EOF
