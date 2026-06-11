@@ -45,7 +45,7 @@ detect_os() {
 install_base_packages() {
   export DEBIAN_FRONTEND=noninteractive
   apt-get update
-  apt-get install -y ca-certificates curl jq tar gzip unzip openssl iproute2 iptables mtr-tiny iperf3 gnupg
+  apt-get install -y ca-certificates curl jq tar gzip unzip openssl iproute2 iptables mtr-tiny iperf3 gnupg python3
 }
 
 system_arch() {

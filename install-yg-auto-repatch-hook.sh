@@ -23,6 +23,7 @@ install_hook_files() {
   install -m 0700 "$SCRIPT_DIR/patch-sing-box-yg-oracle.sh" "$HOOK_LIB_DIR/patch-sing-box-yg-oracle.sh"
   install -m 0700 "$SCRIPT_DIR/oneclick-oracle-after-sing-box-yg.sh" "$HOOK_LIB_DIR/oneclick-oracle-after-sing-box-yg.sh"
   install -m 0700 "$SCRIPT_DIR/verify-vps-links.sh" "$HOOK_LIB_DIR/verify-vps-links.sh"
+  install -m 0700 "$SCRIPT_DIR/test-socks5-udp.py" "$HOOK_LIB_DIR/test-socks5-udp.py"
   printf '%s\n' "$HOOK_MARKER" > "$HOOK_LIB_DIR/.vps-tunnel-hook"
   chown -R root:root "$HOOK_LIB_DIR"
   chmod 0600 "$HOOK_LIB_DIR/.vps-tunnel-hook"

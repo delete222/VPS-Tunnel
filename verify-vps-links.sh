@@ -67,6 +67,20 @@ case "$role" in
       port="$GCP_INTERNAL_SOCKS_PORT"
     fi
     curl --max-time 20 --socks5 "${GCP_SOCKS_USER}:${GCP_SOCKS_PASSWORD}@${target}:${port}" https://ipinfo.io/ip || true
+
+    echo
+    echo "Germany through GCP SOCKS UDP test:"
+    if [[ "$INNER_LINK_MODE" == "ssh-socks" ]]; then
+      echo "SKIP: ssh-socks mode uses SSH TCP forwarding, so UDP through the GCP SOCKS exit is not expected to work."
+    elif ! command -v python3 >/dev/null 2>&1; then
+      echo "SKIP: python3 is missing, so the SOCKS5 UDP test cannot run."
+    else
+      python3 "$SCRIPT_DIR/test-socks5-udp.py" \
+        --proxy-host "$target" \
+        --proxy-port "$port" \
+        --username "$GCP_SOCKS_USER" \
+        --password "$GCP_SOCKS_PASSWORD" || true
+    fi
     echo
     systemctl --no-pager --full status sing-box || true
     echo

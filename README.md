@@ -222,6 +222,26 @@ sudo bash verify-vps-links.sh oracle
 
 如果 GCP 刚重启时 Tailscale 较慢，`vps-tunnel-gcp-exit.service` 会持续重试，不需要手动抢救。Oracle 的 `sing-box-yg` 服务不依赖 GCP 先在线；GCP 暂时不可达时客户端可能连不上出口，但不会让 yg 菜单或配置文件失效。
 
+## UDP 和协议影响
+
+本包用 SOCKS5 作为 Oracle 到 GCP 的应用层出口。TCP 出口可以用 `curl --socks5` 验证；UDP 需要 SOCKS5 UDP ASSOCIATE 单独验证。
+
+在 Oracle 上运行：
+
+```bash
+sudo bash verify-vps-links.sh oracle
+```
+
+其中会额外执行 `test-socks5-udp.py`，通过 GCP SOCKS5 出口向 `1.1.1.1:53` 发 UDP DNS 查询。看到 `OK: SOCKS5 UDP works` 才能说明 Oracle -> GCP 的 SOCKS5 UDP 链路可用。
+
+影响说明：
+
+- `tailscale` 和 `wireguard` 内链模式理论上可以承载 UDP，实际以 `test-socks5-udp.py` 结果为准。
+- `ssh-socks` 模式使用 SSH `-L` TCP 转发，不应期待 UDP 可用。
+- 普通 HTTPS/WebSocket/VLESS/VMess 浏览网页主要走 TCP，通常不受影响。
+- QUIC/HTTP3、游戏、部分 DNS、以及代理内承载的 UDP 目标流量依赖 SOCKS5 UDP 测试结果。
+- HY2/TUIC 作为客户端到 Oracle 的入站协议本身使用 UDP；入站能否连上取决于 Oracle 公网端口和 `sing-box-yg` 配置。入站解包后的目标 UDP 流量是否经 GCP 出口，则取决于 Oracle -> GCP 的 SOCKS5 UDP 是否通过测试。
+
 ## 3. 中国真实网络测试
 
 客户端配置仍然使用 `sing-box-yg` 生成的订阅或节点。
