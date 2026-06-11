@@ -61,7 +61,13 @@ sudo bash fresh-oracle.sh
 sudo bash oneclick-oracle-after-sing-box-yg.sh
 ```
 
-这个补丁脚本最后会自动验证 TCP 和 UDP。看到 `Germany through GCP SOCKS exit IP` 显示 GCP 美国 IP，并且 UDP 段显示 `OK: SOCKS5 UDP works`，就说明内链出口基本正常。
+最后在 Oracle VPS 上验证 TCP 和 UDP：
+
+```bash
+sudo bash verify-vps-links.sh oracle
+```
+
+看到 `Germany through GCP SOCKS exit IP` 显示 GCP 美国 IP，并且 UDP 段显示 `OK: SOCKS5 UDP works`，就说明内链出口基本正常。
 
 ## 为什么是这个顺序
 
