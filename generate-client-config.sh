@@ -109,6 +109,5 @@ cat > "$out" <<EOF
 }
 EOF
 
-echo "Wrote $out"
-echo "Important: test this only on a real China network path, not while your existing VPN is active."
-
+echo "已写入：$out"
+echo "重要：请只在真实中国网络路径下测试，不要在当前电脑已经连接其它 VPN 时判断线路效果。"

@@ -88,7 +88,7 @@ sudo bash oneclick-oracle-after-sing-box-yg.sh
 sudo bash verify-vps-links.sh oracle
 ```
 
-看到 `Germany through GCP SOCKS exit IP` 显示 GCP 美国 IP，并且 UDP 段显示 `OK: SOCKS5 UDP works`，就说明内链出口基本正常。
+看到 `德国经 GCP SOCKS 出口访问 ipinfo 的出口 IP` 显示 GCP 美国 IP，并且 UDP 段显示 `正常：SOCKS5 UDP 可通过`，就说明内链出口基本正常。
 
 ## 为什么是这个顺序
 
@@ -332,7 +332,7 @@ sudo bash verify-vps-links.sh oracle
 sudo bash verify-vps-links.sh oracle
 ```
 
-其中会额外执行 `test-socks5-udp.py`，通过 GCP SOCKS5 出口向 `1.1.1.1:53` 发 UDP DNS 查询。看到 `OK: SOCKS5 UDP works` 才能说明 Oracle -> GCP 的 SOCKS5 UDP 链路可用。
+其中会额外执行 `test-socks5-udp.py`，通过 GCP SOCKS5 出口向 `1.1.1.1:53` 发 UDP DNS 查询。看到 `正常：SOCKS5 UDP 可通过` 才能说明 Oracle -> GCP 的 SOCKS5 UDP 链路可用。
 
 影响说明：
 

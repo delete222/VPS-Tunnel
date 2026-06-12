@@ -152,7 +152,7 @@ EOF
 
   cat > /etc/systemd/system/${GCP_EXIT_SERVICE}.service <<EOF
 [Unit]
-Description=VPS-Tunnel GCP sing-box SOCKS exit
+Description=VPS-Tunnel GCP sing-box SOCKS 出口
 Documentation=https://sing-box.sagernet.org/
 Wants=network-online.target tailscaled.service
 After=network-online.target tailscaled.service nss-lookup.target
@@ -172,7 +172,7 @@ EOF
 else
   cat > /etc/systemd/system/${GCP_EXIT_SERVICE}.service <<EOF
 [Unit]
-Description=VPS-Tunnel GCP sing-box SOCKS exit
+Description=VPS-Tunnel GCP sing-box SOCKS 出口
 Documentation=https://sing-box.sagernet.org/
 Wants=network-online.target
 After=network-online.target nss-lookup.target

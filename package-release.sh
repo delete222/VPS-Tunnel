@@ -22,4 +22,4 @@ tar -cf - \
   -C "$SCRIPT_DIR" . | tar -xf - -C "$pkg"
 
 tar -czf "$OUT_FILE" -C "$tmpdir" VPS-Tunnel
-echo "Wrote $OUT_FILE"
+echo "已写入：$OUT_FILE"

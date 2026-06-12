@@ -84,7 +84,7 @@ EOF
     info "正在确认到 GCP SOCKS 的 SSH 隧道已配置"
     cat > /etc/systemd/system/gcp-socks-tunnel.service <<EOF
 [Unit]
-Description=Local tunnel to GCP SOCKS exit
+Description=到 GCP SOCKS 出口的本地隧道
 After=network-online.target
 Wants=network-online.target
 

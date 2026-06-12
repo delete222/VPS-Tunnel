@@ -5,16 +5,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
   cat <<'EOF'
-Usage:
+用法：
   ./upload-to-vps.sh <gcp-ssh-target> <oracle-ssh-target>
 
-Examples:
+示例：
   ./upload-to-vps.sh ubuntu@1.2.3.4 ubuntu@5.6.7.8
   ./upload-to-vps.sh root@gcp.example.com root@oracle.example.com
 
-This script runs locally. It uploads the same configured VPS-Tunnel folder to:
+这个脚本在你的本地电脑上运行。它会把同一份配置好的 VPS-Tunnel 目录上传到两台服务器的：
   ~/VPS-Tunnel
-on both servers.
 EOF
 }
 
@@ -48,7 +47,7 @@ tar -czf "$archive" \
 upload_one() {
   local target="$1"
   echo
-  echo "Uploading to $target:~/$REMOTE_DIR"
+  echo "正在上传到 $target:~/$REMOTE_DIR"
   scp "$archive" "$target:/tmp/VPS-Tunnel.tar.gz"
   ssh "$target" "rm -rf ~/$REMOTE_DIR && mkdir -p ~/$REMOTE_DIR && tar -xzf /tmp/VPS-Tunnel.tar.gz -C ~/$REMOTE_DIR && rm -f /tmp/VPS-Tunnel.tar.gz"
 }
@@ -58,14 +57,14 @@ upload_one "$ORACLE_TARGET"
 
 cat <<EOF
 
-Upload complete.
+上传完成。
 
-Next:
-  On GCP:
+下一步：
+  在 GCP 上：
     cd ~/$REMOTE_DIR && sudo bash fresh-gcp.sh
 
-  On Germany Oracle:
+  在德国 Oracle 上：
     cd ~/$REMOTE_DIR && sudo bash fresh-oracle.sh
-    # Finish/tune the sing-box-yg menu first, then:
+    # 先在 sing-box-yg 菜单里完成端口、证书、协议和订阅配置，然后再运行：
     sudo bash oneclick-oracle-after-sing-box-yg.sh
 EOF

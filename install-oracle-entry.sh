@@ -11,16 +11,16 @@ detect_os
 
 if [[ "${I_UNDERSTAND_INSTALL_ORACLE_ENTRY_REPLACES_SERVICES:-}" != "yes" ]]; then
   cat >&2 <<'EOF'
-ERROR: install-oracle-entry.sh is an advanced fallback that does NOT use
-yonggekkk/sing-box-yg. It writes /etc/sing-box/config.json,
-/etc/systemd/system/sing-box.service, and /etc/caddy/Caddyfile.
+错误：install-oracle-entry.sh 是高级备用入口，不使用 yonggekkk/sing-box-yg。
+它会写入 /etc/sing-box/config.json、/etc/systemd/system/sing-box.service
+以及 /etc/caddy/Caddyfile。
 
-Recommended path:
+推荐路线：
   1. sudo bash fresh-oracle.sh
-  2. finish/tune the sing-box-yg menu
+  2. 在 sing-box-yg 菜单里完成端口、证书、协议和订阅配置
   3. sudo bash oneclick-oracle-after-sing-box-yg.sh
 
-If you really want this fallback entry installer, rerun with:
+如果你确实要使用这个备用入口安装器，请这样重新运行：
   I_UNDERSTAND_INSTALL_ORACLE_ENTRY_REPLACES_SERVICES=yes sudo -E bash install-oracle-entry.sh
 EOF
   exit 1
@@ -43,7 +43,7 @@ case "$INNER_LINK_MODE" in
     require_var TAILSCALE_ORACLE_HOSTNAME
     require_var TAILSCALE_GCP_IP
     install_tailscale
-    info "Bringing up Tailscale on Germany Oracle"
+    info "正在启动德国 Oracle 上的 Tailscale"
     tailscale up --auth-key "$TAILSCALE_AUTH_KEY_ORACLE" --hostname "$TAILSCALE_ORACLE_HOSTNAME" --ssh=false
     GCP_SOCKS_HOST="$TAILSCALE_GCP_IP"
     ;;
@@ -52,7 +52,7 @@ case "$INNER_LINK_MODE" in
     require_var WG_GCP_PUBLIC_KEY
     require_var GCP_US_PUBLIC_IP
     apt-get install -y wireguard
-    info "Configuring WireGuard on Germany Oracle"
+    info "正在配置德国 Oracle 上的 WireGuard"
     write_file /etc/wireguard/wg0.conf <<EOF
 [Interface]
 Address = ${WG_ORACLE_IP}/24
@@ -72,10 +72,10 @@ EOF
     require_var GCP_SSH_USER
     require_var GCP_SSH_HOST
     require_var GCP_SSH_KEY_PATH
-    info "Configuring SSH SOCKS tunnel service"
+    info "正在配置 SSH SOCKS 隧道服务"
     cat > /etc/systemd/system/gcp-socks-tunnel.service <<EOF
 [Unit]
-Description=Local tunnel to GCP SOCKS exit
+Description=到 GCP SOCKS 出口的本地隧道
 After=network-online.target
 Wants=network-online.target
 
@@ -93,17 +93,17 @@ EOF
     GCP_INTERNAL_SOCKS_PORT="$ORACLE_LOCAL_SOCKS_PORT"
     ;;
   *)
-    die "Invalid INNER_LINK_MODE=$INNER_LINK_MODE"
+    die "INNER_LINK_MODE 配置无效：$INNER_LINK_MODE"
     ;;
 esac
 
 if [[ -z "${REALITY_PRIVATE_KEY:-}" ]]; then
-  info "REALITY_PRIVATE_KEY is empty. Generating a key pair suggestion."
+  info "REALITY_PRIVATE_KEY 为空，正在生成一组 Reality 密钥建议。"
   sing-box generate reality-keypair || true
-  echo "Put the private/public keys into 00-vars.env, then rerun this script for Reality."
+  echo "请把生成的 private/public key 填入 00-vars.env，然后重新运行本脚本启用 Reality。"
 fi
 
-info "Installing Caddy"
+info "正在安装 Caddy"
 apt-get install -y debian-keyring debian-archive-keyring apt-transport-https
 if ! command -v caddy >/dev/null 2>&1; then
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
@@ -112,7 +112,7 @@ if ! command -v caddy >/dev/null 2>&1; then
   apt-get install -y caddy
 fi
 
-info "Writing Caddy reverse proxy for Cloudflare WebSocket entry"
+info "正在写入 Cloudflare WebSocket 入口的 Caddy 反向代理配置"
 cat > /etc/caddy/Caddyfile <<EOF
 {
   servers {
@@ -133,7 +133,7 @@ ${CDN_DOMAIN}:${HTTPS_PORT} {
 }
 EOF
 
-info "Writing Germany Oracle sing-box entry service"
+info "正在写入德国 Oracle 的 sing-box 入口服务"
 install -d -m 0755 /etc/sing-box
 cat > /etc/sing-box/config.json <<EOF
 {
@@ -244,7 +244,7 @@ fi
 
 cat > /etc/systemd/system/sing-box.service <<'EOF'
 [Unit]
-Description=sing-box service
+Description=sing-box 服务
 Documentation=https://sing-box.sagernet.org/
 After=network.target nss-lookup.target
 
@@ -263,6 +263,6 @@ sing-box check -c /etc/sing-box/config.json
 enable_service sing-box
 systemctl reload caddy || systemctl restart caddy
 
-info "Germany Oracle entry installed"
-echo "Verify internal exit from Germany:"
+info "德国 Oracle 入口已安装完成"
+echo "可在德国 Oracle 上这样验证内链出口："
 echo "  curl --socks5 ${GCP_SOCKS_USER}:${GCP_SOCKS_PASSWORD}@${GCP_SOCKS_HOST}:${GCP_INTERNAL_SOCKS_PORT} https://ipinfo.io/ip"
