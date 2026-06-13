@@ -6,7 +6,32 @@
 中国客户端 -> 德国 Oracle 的 sing-box-yg 多协议入口 -> Tailscale 内链 -> 美国 GCP SOCKS 出口 -> 互联网
 ```
 
-两台 VPS 都刚重装完系统时，照这个顺序：
+两台 VPS 都刚重装完系统时，推荐直接使用菜单版：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/delete222/VPS-Tunnel/main/install-vpswall.sh | sudo bash
+```
+
+安装后以后只需要输入：
+
+```bash
+sudo vpswall
+```
+
+脚本会安装到 `/root/VPS-Tunnel`，快捷命令会安装到 `/usr/local/bin/vpswall`。你不需要每次手动 `cd` 进入目录。
+
+菜单里先进入 `1. 环境配置`，再使用二级菜单：
+
+```text
+1. 新建配置
+2. 查看当前配置
+3. 粘入已有配置
+4. 检查配置
+```
+
+关键点：两台 VPS 必须使用同一份 `00-vars.env`。推荐先在第一台机器新建配置并填好两个 Tailscale auth key，再在另一台机器用“粘入已有配置”粘贴同一份内容。
+
+如果不用菜单，手动顺序仍然是：
 
 1. 本地生成 `00-vars.env`，填入两个 Tailscale auth key。
 2. 美国 GCP 上传本包，运行 `sudo bash fresh-gcp.sh`。
@@ -17,6 +42,33 @@
 德国的 VLESS/VMess+CDN、HY2、Reality、SSL 证书、订阅配置，都继续交给 `yonggekkk/sing-box-yg` 处理。本包只负责 Tailscale 内链和“最终出口改成 GCP”。
 
 ## 最短执行顺序
+
+### 菜单版
+
+在 GCP 和 Oracle 两台 VPS 上都执行：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/delete222/VPS-Tunnel/main/install-vpswall.sh | sudo bash
+```
+
+之后随时运行：
+
+```bash
+sudo vpswall
+```
+
+推荐操作顺序：
+
+1. 在其中一台 VPS 的菜单里选择 `1. 环境配置` -> `1. 新建配置`。
+2. 填好 `/root/VPS-Tunnel/00-vars.env` 里的 `TAILSCALE_AUTH_KEY_GCP` 和 `TAILSCALE_AUTH_KEY_ORACLE`。
+3. 在另一台 VPS 的菜单里选择 `1. 环境配置` -> `3. 粘入已有配置`，粘贴同一份 `00-vars.env`。
+4. 在 GCP VPS 选择 `2. 运行 GCP 出口脚本`。
+5. 在 Oracle VPS 选择 `3. 运行 Oracle 入口脚本`。
+6. 在 sing-box-yg 菜单里设置好端口、证书、协议和订阅。
+7. 回到 Oracle VPS 菜单，选择 `4. Oracle 打 GCP 出口补丁`。
+8. 选择 `6. 测试/检查` 验证出口和 UDP。
+
+### 手动版
 
 本地电脑：
 

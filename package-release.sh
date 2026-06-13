@@ -15,6 +15,7 @@ mkdir -p "$pkg"
 
 tar -cf - \
   --exclude '.git' \
+  --exclude '.DS_Store' \
   --exclude 'work' \
   --exclude 'release' \
   --exclude 'client-sing-box.json' \
