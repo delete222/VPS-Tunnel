@@ -116,11 +116,3 @@ echo "快捷命令：$BIN_PATH"
 echo
 echo "以后输入下面这个命令即可打开菜单："
 echo "  sudo vpswall"
-echo
-if [[ "${VPSWALL_NO_MENU:-0}" != "1" ]]; then
-  if [[ -r /dev/tty && -w /dev/tty ]]; then
-    "$BIN_PATH" </dev/tty >/dev/tty
-  else
-    echo "当前不是交互式终端，已跳过自动打开菜单。请稍后运行：sudo vpswall"
-  fi
-fi
