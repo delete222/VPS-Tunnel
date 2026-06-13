@@ -221,7 +221,9 @@ update_self() {
     return 1
   fi
   echo "正在更新 VPS-Tunnel..."
+  cd /
   curl -fsSL https://raw.githubusercontent.com/delete222/VPS-Tunnel/main/install-vpswall.sh | VPSWALL_DIR="$SCRIPT_DIR" VPSWALL_NO_MENU=1 bash
+  cd "$SCRIPT_DIR"
 }
 
 main_menu() {
