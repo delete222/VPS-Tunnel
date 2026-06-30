@@ -198,6 +198,7 @@ VPS-Tunnel 其他脚本
 4. 恢复最近一次 sing-box-yg 备份
 5. 生成客户端配置
 6. 高级备用：自建 Oracle 入口
+7. 卸载/恢复 VPS-Tunnel 设置
 0. 返回主菜单
 
 EOF
@@ -209,6 +210,7 @@ EOF
       4) run_action run_script restore-sing-box-yg-backup.sh; pause ;;
       5) run_action run_script generate-client-config.sh; pause ;;
       6) run_action run_script install-oracle-entry.sh; pause ;;
+      7) run_action run_script uninstall-vps-tunnel.sh; pause ;;
       0) return 0 ;;
       *) echo "无效选项：$choice"; pause ;;
     esac

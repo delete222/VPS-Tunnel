@@ -351,6 +351,56 @@ sudo bash install-yg-auto-repatch-hook.sh remove
 sudo bash restore-sing-box-yg-backup.sh
 ```
 
+## 卸载/恢复 VPS-Tunnel 设置
+
+如果你想撤掉本包做过的中转、出站、隧道和自动补丁设置，可以在对应 VPS 上运行：
+
+```bash
+cd /root/VPS-Tunnel
+sudo bash uninstall-vps-tunnel.sh
+```
+
+菜单版也可以进入：
+
+```text
+8. 其他脚本 -> 7. 卸载/恢复 VPS-Tunnel 设置
+```
+
+默认卸载会做这些事：
+
+- 恢复被包装过的 `/usr/bin/sb`，让 `sing-box-yg` 菜单回到原来的运行方式。
+- 停止并删除 `vps-tunnel-gcp-exit.service` 和 `gcp-socks-tunnel.service`。
+- 删除 GCP SOCKS 出口配置 `/etc/sing-box/vps-tunnel-gcp-exit.json`。
+- 删除 `/usr/local/bin/vps-tunnel-wait-gcp-exit-tailscale`。
+- 如果 `/etc/wireguard/wg0.conf` 看起来是本包生成的配置，会停用 `wg-quick@wg0` 并移走配置。
+- 恢复 `sing-box-yg` 打补丁前的 `sb10.json`、`sb11.json`、`sb.json` 备份。
+- 如果找不到备份，会尝试从当前 `sb*.json` 里移除 `gcp-us-exit` 出站和强制路由。
+- 对疑似本包自建入口写入的 `/etc/sing-box/config.json`、Caddyfile 做清理。
+
+删除或覆盖前的文件会备份到：
+
+```text
+/root/vps-tunnel-uninstall-backup-时间戳/
+```
+
+默认不会卸载 `sing-box-yg` 本体。Tailscale 默认只执行 `tailscale down`，不会卸载软件包；如果你确定这台 VPS 不再需要 Tailscale，可以加：
+
+```bash
+sudo bash uninstall-vps-tunnel.sh --remove-tailscale
+```
+
+如果连 `/usr/local/bin/vpswall` 和 `/root/VPS-Tunnel` 脚本目录也想删除：
+
+```bash
+sudo bash uninstall-vps-tunnel.sh --remove-kit
+```
+
+如果你想无交互卸载：
+
+```bash
+sudo bash uninstall-vps-tunnel.sh --yes
+```
+
 ## VPS 重启后自检
 
 两台 VPS 重启后，通常会自动恢复。建议按下面顺序确认：
@@ -446,4 +496,5 @@ sudo bash verify-vps-links.sh oracle
 - `check-oracle-patch-status.sh`：检查 yg 三份配置是否仍指向 GCP 出口。
 - `install-yg-auto-repatch-hook.sh`：可选包装 `/usr/bin/sb`，在 yg 菜单退出后自动检查并重补丁。
 - `restore-sing-box-yg-backup.sh`：恢复最近一次补丁前备份。
+- `uninstall-vps-tunnel.sh`：卸载本包创建的中转/出口/隧道/补丁设置，并尽量恢复 sing-box-yg 原状。
 - `install-oracle-entry.sh`：完全不用 `sing-box-yg` 时，由本包自建德国入口，会用到 Caddy；会覆盖 `/etc/sing-box/config.json`、`sing-box.service` 和 Caddyfile，必须显式设置确认变量才会运行。
